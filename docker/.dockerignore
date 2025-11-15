@@ -1,0 +1,129 @@
+# =============================================================================
+# Docker Build Context Exclusions
+# =============================================================================
+# Security: Prevents sensitive files from being copied into image layers
+# Performance: Reduces build context size for faster builds
+# =============================================================================
+
+# Version Control
+.git
+.gitignore
+.gitattributes
+.github/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+*.cover
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+.env
+
+# IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-*
+
+# Documentation (exclude from image)
+*.md
+docs/
+README*
+LICENSE
+CHANGELOG*
+CONTRIBUTING*
+
+# Security & Compliance (don't copy into image)
+security/vulnerability-report*
+security/scan-results*
+security/*.pdf
+security/*.html
+.trivyignore
+
+# Secrets & Configuration (CRITICAL - never include)
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+.env
+.env.*
+*.secret
+credentials.json
+secrets/
+*.token
+
+# CI/CD
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+Jenkinsfile
+.circleci/
+
+# Testing
+tests/
+test/
+*_test.py
+test_*.py
+*.test
+
+# Local Development
+tmp/
+temp/
+*.log
+*.bak
+*.tmp
+
+# Docker (don't nest Docker files)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Node.js (if any)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# OS Files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Large binaries (models should be downloaded in container)
+*.bin
+*.onnx
+*.safetensors
+models/
+checkpoints/
+
+# Backup files
+*.backup
+*.old
+*~
+
+# Security scanning results
+trivy-results.json
+sbom.json
+vulnerability-report.txt

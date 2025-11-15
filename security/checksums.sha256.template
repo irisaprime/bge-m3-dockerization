@@ -1,0 +1,69 @@
+# =============================================================================
+# BGE-M3 Embedding Service - File Integrity Checksums
+# =============================================================================
+# Generated: [DATE]
+# Purpose: Verify integrity of all critical files
+# Usage: sha256sum -c checksums.sha256
+# =============================================================================
+
+# =============================================================================
+# MODEL FILES
+# =============================================================================
+
+# BGE-M3 PyTorch Model
+# Source: https://huggingface.co/BAAI/bge-m3
+# [HASH]  models/bge-m3/pytorch_model.bin
+# [HASH]  models/bge-m3/config.json
+# [HASH]  models/bge-m3/tokenizer.json
+# [HASH]  models/bge-m3/tokenizer_config.json
+# [HASH]  models/bge-m3/special_tokens_map.json
+# [HASH]  models/bge-m3/sentence_bert_config.json
+
+# BGE-M3 ONNX Model
+# Source: https://huggingface.co/philipchung/bge-m3-onnx
+# [HASH]  models/bge-m3-onnx/model.onnx
+# [HASH]  models/bge-m3-onnx/model_optimized.onnx
+# [HASH]  models/bge-m3-onnx/config.json
+# [HASH]  models/bge-m3-onnx/tokenizer.json
+
+# =============================================================================
+# APPLICATION FILES
+# =============================================================================
+
+# [HASH]  app/main.py
+# [HASH]  app/models.py
+# [HASH]  app/embedding_service.py
+
+# =============================================================================
+# CONFIGURATION FILES
+# =============================================================================
+
+# [HASH]  requirements.txt
+# [HASH]  docker/Dockerfile.secure
+# [HASH]  docker/.dockerignore
+# [HASH]  config/seccomp-profile.json
+# [HASH]  config/apparmor-profile
+# [HASH]  config/network-policy.yaml
+
+# =============================================================================
+# SECURITY & SCRIPTS
+# =============================================================================
+
+# [HASH]  scripts/security-scan.sh
+# [HASH]  scripts/pre-deployment-check.sh
+# [HASH]  scripts/offline-build.sh
+
+# =============================================================================
+# INSTRUCTIONS
+# =============================================================================
+
+# Generate checksums:
+#   find . -type f \( -name "*.py" -o -name "*.json" -o -name "*.sh" -o -name "*.bin" -o -name "*.onnx" \) -exec sha256sum {} \; | sort > security/checksums.sha256
+
+# Verify checksums:
+#   sha256sum -c security/checksums.sha256
+
+# Verify specific file:
+#   grep "filename" security/checksums.sha256 | sha256sum -c
+
+# =============================================================================

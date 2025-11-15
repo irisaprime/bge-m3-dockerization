@@ -1,0 +1,216 @@
+# =============================================================================
+# BGE-M3 Secure Deployment - Docker Compose
+# =============================================================================
+# Production-ready compose file with enterprise security hardening
+# Security: Read-only FS, seccomp, AppArmor, capabilities, no-new-privileges
+# =============================================================================
+
+version: '3.8'
+
+services:
+  bge-m3-embedding:
+    image: bge-m3-secure:latest
+    container_name: bge-m3-embedding-service
+    hostname: bge-m3-embedding
+
+    # ==========================================================================
+    # Security Configuration
+    # ==========================================================================
+
+    # Run as non-root user (matches Dockerfile USER)
+    user: "65532:65532"  # nonroot:nonroot from distroless
+
+    # Read-only root filesystem
+    read_only: true
+
+    # Security options
+    security_opt:
+      - no-new-privileges:true  # Prevent privilege escalation
+      - apparmor=docker-default  # Apply AppArmor profile
+      - seccomp=./config/seccomp-profile.json  # Custom seccomp profile
+
+    # Drop all capabilities, add only what's needed
+    cap_drop:
+      - ALL
+    # Uncomment if you need to bind to privileged ports (< 1024)
+    # cap_add:
+    #   - NET_BIND_SERVICE
+
+    # Tmpfs mounts for read-only filesystem compatibility
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev,size=2G,mode=1777
+      - /var/tmp:noexec,nosuid,nodev,size=512M,mode=1777
+
+    # ==========================================================================
+    # Resource Limits (Prevent DoS)
+    # ==========================================================================
+
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+          pids: 200  # Limit number of processes
+        reservations:
+          cpus: '2.0'
+          memory: 4G
+
+    # ==========================================================================
+    # Environment Variables
+    # ==========================================================================
+
+    environment:
+      # API Configuration
+      - API_KEY=${API_KEY:-CHANGE_ME_IN_PRODUCTION}
+      - API_KEY_ENABLED=${API_KEY_ENABLED:-true}
+
+      # Rate Limiting
+      - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED:-true}
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-60}
+
+      # Model Configuration
+      - MODEL_PATH=/models/bge-m3
+      - ONNX_MODEL_PATH=/models/bge-m3-onnx
+      - USE_ONNX=${USE_ONNX:-true}
+      - MAX_SEQ_LENGTH=8192
+      - MAX_BATCH_SIZE=32
+      - MAX_WORKERS=4
+
+      # Security
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
+      - DISABLE_DOCS=${DISABLE_DOCS:-false}
+
+      # Python Configuration
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONHASHSEED=random
+
+    # ==========================================================================
+    # Network Configuration
+    # ==========================================================================
+
+    networks:
+      - bge-m3-network
+
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+
+    # Disable IPv6 if not needed (reduces attack surface)
+    sysctls:
+      - net.ipv4.ip_forward=0
+      - net.ipv6.conf.all.disable_ipv6=1
+
+    # ==========================================================================
+    # Health Check
+    # ==========================================================================
+
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\").read()' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # ==========================================================================
+    # Logging Configuration (No PII)
+    # ==========================================================================
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service,environment"
+
+    labels:
+      - "service=bge-m3-embedding"
+      - "environment=${ENVIRONMENT:-production}"
+      - "security.hardened=true"
+      - "compliance.flt=true"
+
+    # ==========================================================================
+    # Restart Policy
+    # ==========================================================================
+
+    restart: unless-stopped
+
+    # ==========================================================================
+    # Volumes (if models are external)
+    # ==========================================================================
+
+    # Uncomment if models are stored externally
+    # volumes:
+    #   - ./models:/models:ro  # Read-only mount for models
+
+# =============================================================================
+# Networks
+# =============================================================================
+
+networks:
+  bge-m3-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: bge-m3-br
+      com.docker.network.bridge.enable_icc: "false"  # Disable inter-container communication
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          ip_range: 172.28.5.0/24
+          gateway: 172.28.5.254
+
+# =============================================================================
+# Volumes (Optional - for persistent data)
+# =============================================================================
+
+# volumes:
+#   bge-m3-models:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       o: bind
+#       device: ./models
+
+# =============================================================================
+# Usage Instructions
+# =============================================================================
+
+# Start service:
+#   docker-compose -f docker-compose.secure.yml up -d
+
+# View logs:
+#   docker-compose -f docker-compose.secure.yml logs -f
+
+# Check health:
+#   docker-compose -f docker-compose.secure.yml ps
+#   curl http://localhost:8000/health
+
+# Stop service:
+#   docker-compose -f docker-compose.secure.yml down
+
+# Test embedding:
+#   curl -X POST http://localhost:8000/embed \
+#     -H "Content-Type: application/json" \
+#     -H "X-API-Key: YOUR_API_KEY" \
+#     -d '{"texts":["Hello, world!"]}'
+
+# =============================================================================
+# Security Notes
+# =============================================================================
+
+# 1. Change API_KEY before deployment:
+#    export API_KEY="your-secure-random-key"
+#    docker-compose -f docker-compose.secure.yml up -d
+
+# 2. For production, use Docker secrets instead of environment variables:
+#    docker secret create api_key /path/to/api_key
+#    Modify service to use: secrets: [api_key]
+
+# 3. Enable TLS/HTTPS in production (use nginx reverse proxy)
+
+# 4. Monitor with Prometheus:
+#    Metrics available at: http://localhost:8000/metrics
+
+# 5. Review security profiles in ./config/ directory
+
+# =============================================================================

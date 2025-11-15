@@ -1,0 +1,69 @@
+# =============================================================================
+# BGE-M3 Secure Deployment - Python Dependencies
+# =============================================================================
+# All versions pinned for reproducibility and security
+# Generated: 2025-11-15
+# Python Version: 3.11+
+# =============================================================================
+
+# Core ML & Embedding Libraries
+# -----------------------------------------------------------------------------
+sentence-transformers==3.3.1
+transformers==4.46.3
+torch==2.5.1+cpu --find-links https://download.pytorch.org/whl/torch_stable.html
+tokenizers==0.20.3
+huggingface-hub==0.26.2
+safetensors==0.4.5
+
+# ONNX Runtime for CPU Optimization
+# -----------------------------------------------------------------------------
+onnxruntime==1.19.2
+optimum[onnxruntime]==1.23.3
+onnx==1.17.0
+
+# Web Framework & API
+# -----------------------------------------------------------------------------
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.6.1
+python-multipart==0.0.20
+
+# Security & Rate Limiting
+# -----------------------------------------------------------------------------
+slowapi==0.1.9
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+cryptography==44.0.0
+
+# Monitoring & Observability
+# -----------------------------------------------------------------------------
+prometheus-client==0.21.0
+python-json-logger==3.2.1
+
+# Utilities
+# -----------------------------------------------------------------------------
+numpy==1.26.4
+scipy==1.14.1
+pillow==11.0.0
+requests==2.32.3
+tqdm==4.67.1
+
+# Data Validation & Serialization
+# -----------------------------------------------------------------------------
+orjson==3.10.12
+msgpack==1.1.0
+
+# =============================================================================
+# SECURITY NOTES:
+# =============================================================================
+# 1. All versions are pinned to prevent supply chain attacks
+# 2. PyTorch CPU-only version to reduce attack surface
+# 3. Cryptography libraries use latest secure versions
+# 4. No dev/test dependencies included
+# 5. Use 'pip-audit' to check for known vulnerabilities
+# 6. Use 'uv pip compile --generate-hashes' for production
+# =============================================================================
+
+# For hash-verified installation (recommended):
+# uv pip compile --generate-hashes requirements.txt -o requirements.lock
